@@ -7,6 +7,9 @@ on:
       - 'chest_tracker_android_project.zip'
       - '.github/workflows/android.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,6 +51,16 @@ jobs:
       - name: Fix singleLine error
         run: |
           sed -i 's/singleLine = true/setSingleLine(true)/' chest_tracker_android/app/src/main/java/com/chesttracker/app/MainActivity.kt
+      - name: Save extracted Android project to GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add chest_tracker_android
+          if ! git diff --cached --quiet; then
+            git commit -m "Add extracted Android project source"
+            git push
+          fi
+
       - name: Build APK
         working-directory: chest_tracker_android
         run: gradle assembleDebug

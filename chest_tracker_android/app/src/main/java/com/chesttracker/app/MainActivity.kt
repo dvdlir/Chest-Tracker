@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.inputmethod.EditorInfo
 import android.content.Context
 import android.widget.*
+import android.widget.FrameLayout
 
 class MainActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("chest_tracker_local", Context.MODE_PRIVATE) }
@@ -75,7 +76,7 @@ class MainActivity : Activity() {
                 intArrayOf(bg, Color.rgb(18, 25, 58))
             )
         }
-        scroll.addView(root, ScrollView.LayoutParams(-1, -2))
+        scroll.addView(root, FrameLayout.LayoutParams(-1, -2))
         setContentView(scroll)
 
         root.addView(label("CHEST TRACKER", 27f, white, true), LinearLayout.LayoutParams(-1, dp(48)))

@@ -45,7 +45,9 @@ jobs:
           )
           p.write_text(s)
           PY
-
+      - name: Fix singleLine error
+        run: |
+          sed -i 's/singleLine = true/setSingleLine(true)/' chest_tracker_android/app/src/main/java/com/chesttracker/app/MainActivity.kt
       - name: Build APK
         working-directory: chest_tracker_android
         run: gradle assembleDebug

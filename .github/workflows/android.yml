@@ -9,7 +9,7 @@ on:
       - '.github/workflows/android.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -25,42 +25,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
-      - name: Extract project
-        run: unzip -q chest_tracker_android_project.zip
-      - name: Fix Java and Kotlin versions
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("chest_tracker_android/app/build.gradle.kts")
-          s = p.read_text()
-          s = s.replace(
-              '    defaultConfig {',
-              '''    compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-
-              defaultConfig {'''
-          )
-          p.write_text(s)
-          PY
-      - name: Fix singleLine error
-        run: |
-          sed -i 's/singleLine = true/setSingleLine(true)/' chest_tracker_android/app/src/main/java/com/chesttracker/app/MainActivity.kt
-      - name: Save extracted Android project to GitHub
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add chest_tracker_android
-          if ! git diff --cached --quiet; then
-            git commit -m "Add extracted Android project source"
-            git push
-          fi
 
       - name: Build APK
         working-directory: chest_tracker_android

@@ -24,6 +24,27 @@ jobs:
 
       - name: Extract project
         run: unzip -q chest_tracker_android_project.zip
+      - name: Fix Java and Kotlin versions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("chest_tracker_android/app/build.gradle.kts")
+          s = p.read_text()
+          s = s.replace(
+              '    defaultConfig {',
+              '''    compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+
+              defaultConfig {'''
+          )
+          p.write_text(s)
+          PY
 
       - name: Build APK
         working-directory: chest_tracker_android

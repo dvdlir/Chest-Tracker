@@ -23,6 +23,8 @@ class MainActivity : Activity() {
     private val white = Color.rgb(245, 248, 255)
     private val muted = Color.rgb(160, 178, 205)
 
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         count = prefs.getInt("total_chests", 0).coerceAtLeast(0)
@@ -30,80 +32,131 @@ class MainActivity : Activity() {
         refresh()
     }
 
-    private fun rounded(color: Int, radius: Float = 22f): GradientDrawable = GradientDrawable().apply {
-        setColor(color); cornerRadius = radius
-    }
+    private fun rounded(color: Int, radius: Float = 22f): GradientDrawable =
+        GradientDrawable().apply { setColor(color); cornerRadius = dp(radius.toInt()).toFloat() }
 
-    private fun label(text: String, size: Float, color: Int, bold: Boolean = false): TextView = TextView(this).apply {
-        this.text = text; textSize = size; setTextColor(color)
-        if (bold) setTypeface(typeface, Typeface.BOLD)
-        gravity = Gravity.CENTER
-    }
+    private fun label(text: String, size: Float, color: Int, bold: Boolean = false): TextView =
+        TextView(this).apply {
+            this.text = text
+            textSize = size
+            setTextColor(color)
+            if (bold) setTypeface(typeface, Typeface.BOLD)
+            gravity = Gravity.CENTER
+            includeFontPadding = true
+        }
 
-    private fun button(text: String, color: Int, textColor: Int = Color.WHITE, action: () -> Unit): Button = Button(this).apply {
-        this.text = text; setTextColor(textColor); textSize = 16f
-        isAllCaps = false
-        background = rounded(color, 18f)
-        setPadding(8, 8, 8, 8)
-        setOnClickListener { action() }
-    }
+    private fun button(text: String, color: Int, textColor: Int = Color.WHITE, action: () -> Unit): Button =
+        Button(this).apply {
+            this.text = text
+            setTextColor(textColor)
+            textSize = 15f
+            isAllCaps = false
+            isSingleLine = false
+            minHeight = 0
+            minimumHeight = 0
+            background = rounded(color, 18f)
+            setPadding(dp(6), dp(6), dp(6), dp(6))
+            setOnClickListener { action() }
+        }
 
     private fun buildScreen() {
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+            setBackgroundColor(bg)
+            isVerticalScrollBarEnabled = false
+        }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(22, 28, 22, 24)
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(bg, Color.rgb(18, 25, 58)))
+            setPadding(dp(18), dp(22), dp(18), dp(24))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(bg, Color.rgb(18, 25, 58))
+            )
         }
-        setContentView(root)
+        scroll.addView(root, ScrollView.LayoutParams(-1, -2))
+        setContentView(scroll)
 
-        root.addView(label("CHEST TRACKER", 27f, white, true), LinearLayout.LayoutParams(-1, 52))
-        root.addView(label("FORTNITE CHEST COUNTER", 12f, cyan, true), LinearLayout.LayoutParams(-1, 28))
+        root.addView(label("CHEST TRACKER", 27f, white, true), LinearLayout.LayoutParams(-1, dp(48)))
+        root.addView(label("FORTNITE CHEST COUNTER", 12f, cyan, true), LinearLayout.LayoutParams(-1, dp(26)))
 
         val countPanel = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
-            background = rounded(panel, 26f); setPadding(18, 24, 18, 24)
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            background = rounded(panel, 26f)
+            setPadding(dp(16), dp(16), dp(16), dp(16))
         }
-        val panelParams = LinearLayout.LayoutParams(-1, 190).apply { topMargin = 26; bottomMargin = 22 }
-        root.addView(countPanel, panelParams)
+        root.addView(countPanel, LinearLayout.LayoutParams(-1, dp(176)).apply {
+            topMargin = dp(20)
+            bottomMargin = dp(18)
+        })
         countPanel.addView(label("TOTAL CHESTS OPENED", 13f, muted, true))
         totalView = label("0", 58f, cyan, true)
-        countPanel.addView(totalView, LinearLayout.LayoutParams(-1, 100))
+        countPanel.addView(totalView, LinearLayout.LayoutParams(-1, dp(88)))
         countPanel.addView(label("Saved on this device", 13f, muted))
 
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER; weightSum = 2f }
-        root.addView(row, LinearLayout.LayoutParams(-1, 64))
-        row.addView(button("＋  Add 1", Color.rgb(0, 132, 190)) { updateCount(count + 1) }, LinearLayout.LayoutParams(0, -1, 1f).apply { rightMargin = 7 })
-        row.addView(button("－  Remove 1", Color.rgb(55, 69, 94)) { updateCount((count - 1).coerceAtLeast(0)) }, LinearLayout.LayoutParams(0, -1, 1f).apply { leftMargin = 7 })
-        root.addView(button("＋10 CHESTS", Color.rgb(36, 53, 83), white) { updateCount(count + 10) }, LinearLayout.LayoutParams(-1, 58).apply { topMargin = 12; bottomMargin = 26 })
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            weightSum = 2f
+        }
+        root.addView(row, LinearLayout.LayoutParams(-1, dp(62)))
+        row.addView(
+            button("＋ Add 1", Color.rgb(0, 132, 190)) { updateCount(count + 1) },
+            LinearLayout.LayoutParams(0, -1, 1f).apply { rightMargin = dp(5) }
+        )
+        row.addView(
+            button("－ Remove 1", Color.rgb(55, 69, 94)) { updateCount((count - 1).coerceAtLeast(0)) },
+            LinearLayout.LayoutParams(0, -1, 1f).apply { leftMargin = dp(5) }
+        )
 
-        root.addView(label("SET A CUSTOM TOTAL", 13f, muted, true), LinearLayout.LayoutParams(-1, 28))
+        root.addView(
+            button("＋10 CHESTS", Color.rgb(36, 53, 83), white) { updateCount(count + 10) },
+            LinearLayout.LayoutParams(-1, dp(56)).apply {
+                topMargin = dp(10)
+                bottomMargin = dp(20)
+            }
+        )
+
+        root.addView(label("SET A CUSTOM TOTAL", 13f, muted, true), LinearLayout.LayoutParams(-1, dp(28)))
         entry = EditText(this).apply {
             hint = "Enter chest count"
-            setHintTextColor(muted); setTextColor(white); textSize = 18f
+            setHintTextColor(muted)
+            setTextColor(white)
+            textSize = 18f
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setSingleLine(true); gravity = Gravity.CENTER
+            setSingleLine(true)
+            gravity = Gravity.CENTER
             background = rounded(Color.rgb(29, 43, 70), 16f)
-            setPadding(14, 8, 14, 8)
+            setPadding(dp(14), dp(8), dp(14), dp(8))
             imeOptions = EditorInfo.IME_ACTION_DONE
             setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) { applyCustom(); true } else false
             }
         }
-        root.addView(entry, LinearLayout.LayoutParams(-1, 58).apply { topMargin = 8 })
-        root.addView(button("Save custom total", Color.rgb(25, 154, 112)) { applyCustom() }, LinearLayout.LayoutParams(-1, 56).apply { topMargin = 10 })
+        root.addView(entry, LinearLayout.LayoutParams(-1, dp(54)).apply { topMargin = dp(8) })
+        root.addView(
+            button("Save custom total", Color.rgb(25, 154, 112)) { applyCustom() },
+            LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(10) }
+        )
 
         message = label("Your count is saved automatically.", 12f, muted)
-        root.addView(message, LinearLayout.LayoutParams(-1, 48))
-        root.addView(button("Reset to 0", Color.rgb(68, 42, 59), Color.rgb(255, 190, 205)) {
-            updateCount(0); message.text = "Counter reset to zero."
-        }, LinearLayout.LayoutParams(-1, 48).apply { topMargin = 10 })
+        root.addView(message, LinearLayout.LayoutParams(-1, dp(44)))
+        root.addView(
+            button("Reset to 0", Color.rgb(68, 42, 59), Color.rgb(255, 190, 205)) {
+                updateCount(0)
+                message.text = "Counter reset to zero."
+            },
+            LinearLayout.LayoutParams(-1, dp(48)).apply { topMargin = dp(6) }
+        )
     }
 
     private fun applyCustom() {
         val value = entry.text.toString().toLongOrNull()
         if (value == null || value < 0 || value > Int.MAX_VALUE) {
-            message.text = "Enter a valid whole number."; return
+            message.text = "Enter a valid whole number."
+            return
         }
         updateCount(value.toInt())
         message.text = "Custom total saved on this device."

@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'chest_tracker_android_project.zip'
+      - 'chest_tracker_android/**'
       - '.github/workflows/android.yml'
 
 permissions:

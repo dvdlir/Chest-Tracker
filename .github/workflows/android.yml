@@ -1,0 +1,35 @@
+name: Build Chest Tracker APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'chest_tracker_android_project.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract project
+        run: unzip -q chest_tracker_android_project.zip
+
+      - name: Build APK
+        working-directory: chest_tracker_android
+        run: gradle assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chest-tracker-apk
+          path: chest_tracker_android/app/build/outputs/apk/debug/app-debug.apk
